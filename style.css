@@ -1,0 +1,32 @@
+/* 基础设置样式 */
+.pixai_settings label:not(.checkbox_label) {
+    display: block;
+    margin-top: 10px;
+}
+
+.pixai_settings .flex-container {
+    display: flex;
+    gap: 10px;
+}
+
+.pixai_settings .flexBasis48p {
+    flex-basis: 48%;
+}
+.pixai_settings .flexGrow {
+    flex-grow: 1;
+}
+.pixai_settings .flexShrink {
+    flex-shrink: 1;
+}
+.pixai_settings .flexFlowColumn {
+    flex-flow: column;
+}
+.pixai_settings .alignitemscenter {
+    align-items: center;
+}
+.pixai_settings .gap0 {
+    gap: 0;
+}
+.pixai_settings .marginBot5 {
+    margin-bottom: 5px;
+}
