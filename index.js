@@ -3,6 +3,7 @@
 //
 
 // 导入 SillyTavern 的核心功能
+import { humanizedDateTime } from '../../../../RossAscends-mods.js'; // humanizedDateTime 来自这里
 import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // 路径从 ../../../ 变为 ../../../../
 import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js'; // 路径从 ../../ 变为 ../../../
 import { t } from '../../../i18n.js'; // 路径从 ../../ 变为 ../../../
@@ -14,7 +15,7 @@ import {
   SlashCommandNamedArgument,
 } from '../../../slash-commands/SlashCommandArgument.js'; // 路径从 ../../ 变为 ../../../
 import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js'; // 路径从 ../../ 变为 ../../../
-import { getBase64Async, humanizedDateTime, saveBase64AsFile } from '../../../utils.js'; // 路径从 ../../ 变为 ../../../
+import { getBase64Async, saveBase64AsFile } from '../../../utils.js'; // 路径从 ../../ 变为 ../../../
 
 // 定义拓展名称
 const MODULE_NAME = 'pixai_generation';
