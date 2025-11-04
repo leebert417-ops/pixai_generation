@@ -3,7 +3,7 @@
 //
 
 // 导入 SillyTavern 的核心功能
-import { addChatEntry, displayStatus, eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // 路径从 ../../../ 变为 ../../../../
+import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // 路径从 ../../../ 变为 ../../../../
 import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js'; // 路径从 ../../ 变为 ../../../
 import { t } from '../../../i18n.js'; // 路径从 ../../ 变为 ../../../
 import { SECRET_KEYS, secret_state } from '../../../secrets.js'; // 路径从 ../../ 变为 ../../../
@@ -53,6 +53,26 @@ const MAX_WAIT_TIME_MS = 300000; // 5分钟超时
  * 帮助函数：休眠
  */
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+/**
+ * 帮助函数：添加聊天消息
+ */
+async function addChatMessage(message, isSystem = false) {
+  const context = getContext();
+  const messageObj = {
+    name: isSystem ? 'System' : context.name1,
+    is_user: false,
+    is_system: isSystem,
+    mes: message,
+    extra: {},
+  };
+  context.chat.push(messageObj);
+  const messageId = context.chat.length - 1;
+  await eventSource.emit(event_types.MESSAGE_RECEIVED, messageId, 'extension');
+  context.addOneMessage(messageObj);
+  await eventSource.emit(event_types.CHARACTER_MESSAGE_RENDERED, messageId, 'extension');
+  await context.saveChat();
+}
 
 /**
  * 核心功能：调用 PixAI API
@@ -112,7 +132,7 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
   };
 
   // --- 步骤 1: 创建任务 ---
-  displayStatus('PixAI: 正在创建任务...', 5000, 'info');
+  toastr.info('正在创建任务...', 'PixAI');
   const createResponse = await fetch(`${PIXAI_API_BASE}/task`, {
     method: 'POST',
     headers: headers,
@@ -132,7 +152,7 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
   }
 
   console.log(`[PixAI] 任务创建成功: ${taskId}`);
-  displayStatus(`PixAI: 任务 ${taskId} 已创建，正在等待...`, 10000, 'info');
+  toastr.info(`任务 ${taskId} 已创建，正在等待...`, 'PixAI');
 
   // --- 步骤 2: 轮询任务 ---
   const startTime = Date.now();
@@ -156,7 +176,6 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
     const status = statusData.status;
 
     console.log(`[PixAI] 任务 ${taskId} 状态: ${status}`);
-    displayStatus(`PixAI: 任务 ${taskId} 状态: ${status}`, 3000, 'info');
 
     if (status === 'completed') {
       // 3. 获取图像 URL (基于您提供的官方示例结构)
@@ -166,7 +185,7 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
         console.log(`[PixAI] 图像 URL: ${imageUrl}`);
 
         // --- 步骤 4: 下载图像并转为 Base64 ---
-        displayStatus('PixAI: 正在下载图像...', 3000, 'info');
+        toastr.info('正在下载图像...', 'PixAI');
         const imageResponse = await fetch(imageUrl, { signal: signal });
         if (!imageResponse.ok) {
           throw new Error('无法从 PixAI URL 下载图像。');
@@ -247,19 +266,14 @@ function registerSlashCommand() {
 
           // 3. 在聊天中显示
           const markdownImage = `![PixAI Image: ${prompt}](${imagePath})`;
-          addChatEntry('system', `(PixAI 正在为“${prompt}”生成图像...)\n${markdownImage}`, {
-            is_api: true,
-            force_avatar: true,
-          });
+          await addChatMessage(`(PixAI 正在为“${prompt}”生成图像...)\n${markdownImage}`, true);
 
-          displayStatus('PixAI: 图像生成完毕！', 3000, 'success');
+          toastr.success('图像生成完毕！', 'PixAI');
           return imagePath; // 返回路径给斜杠命令
         } catch (error) {
           console.error('[PixAI 错误]', error);
           toastr.error(`PixAI 失败: ${error.message}`, 'PixAI 错误');
-          addChatEntry('system', `[PixAI 错误]\n${error.message}`, {
-            is_api: true,
-          });
+          await addChatMessage(`[PixAI 错误]\n${error.message}`, true);
           return ''; // 返回空字符串表示失败
         }
       },
