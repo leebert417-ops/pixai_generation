@@ -5,7 +5,6 @@
 // 导入 SillyTavern 的核心功能
 import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // script.js 在根目录，4层路径
 import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js'; // 路径从 ../../ 变为 ../../../
-import { t } from '../../../i18n.js'; // 路径从 ../../ 变为 ../../../
 import { humanizedDateTime } from '../../../RossAscends-mods.js'; // RossAscends-mods.js 在 public/ 目录下，3层路径
 import { SECRET_KEYS, secret_state } from '../../../secrets.js'; // 路径从 ../../ 变为 ../../../
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js'; // 路径从 ../../ 变为 ../../../
@@ -18,7 +17,8 @@ import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.j
 import { getBase64Async, saveBase64AsFile } from '../../../utils.js'; // 路径从 ../../ 变为 ../../../
 
 // 定义拓展名称
-const MODULE_NAME = 'pixai_generation';
+const MODULE_NAME = 'pixai_generation'; // 用于 extension_settings 的键名
+const TEMPLATE_PATH = 'third-party/pixai_generation'; // 用于模板路径
 const EXTENSION_NAME = 'PixAI Generation';
 
 // 为 ST 的密钥管理器定义密钥名称
@@ -291,7 +291,8 @@ function registerSlashCommand() {
       unnamedArgumentList: [
         new SlashCommandArgument('prompt', [ARGUMENT_TYPE.STRING], true, true), // true = 必需, true = 接受剩余文本
       ],
-      helpString: t('使用 PixAI 生成图像。\n用法: /pixai [提示词] --negative [负面提示词] --width [宽度] ...'),
+      helpString:
+        '使用 PixAI 生成图像。用法: /pixai [提示词] --negative [负面提示词] --width [宽度] --height [高度] --steps [步数] --scale [CFG Scale]',
     }),
   );
 }
@@ -301,7 +302,7 @@ function registerSlashCommand() {
  */
 jQuery(async () => {
   // 1. 加载设置模板
-  const settingsHtml = await renderExtensionTemplateAsync(MODULE_NAME, 'settings', defaultSettings);
+  const settingsHtml = await renderExtensionTemplateAsync(TEMPLATE_PATH, 'settings', defaultSettings);
   $('#extensions_settings').append(settingsHtml);
 
   // 2. 绑定设置事件监听
