@@ -3,10 +3,10 @@
 //
 
 // 导入 SillyTavern 的核心功能
-import { humanizedDateTime } from '../../../../RossAscends-mods.js'; // humanizedDateTime 来自这里
-import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // 路径从 ../../../ 变为 ../../../../
+import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // script.js 在根目录，4层路径
 import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js'; // 路径从 ../../ 变为 ../../../
 import { t } from '../../../i18n.js'; // 路径从 ../../ 变为 ../../../
+import { humanizedDateTime } from '../../../RossAscends-mods.js'; // RossAscends-mods.js 在 public/ 目录下，3层路径
 import { SECRET_KEYS, secret_state } from '../../../secrets.js'; // 路径从 ../../ 变为 ../../../
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js'; // 路径从 ../../ 变为 ../../../
 import {
