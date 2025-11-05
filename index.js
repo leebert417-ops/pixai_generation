@@ -23,10 +23,12 @@ const TEMPLATE_PATH = 'third-party/pixai_generation'; // 用于模板路径
 const defaultSettings = {
   apiKey: '', // API 密钥存储在扩展设置中
   modelId: '1648918127446573124',
-  loraId: '',
-  loraWeight: 0.7,
+  samplingMethod: 'DPM++ 2M Karras',
+  promptPrefix: 'best quality, absurdres, masterpiece,',
   negativePrompt:
     'worst quality, large head, low quality, extra digits, bad eye, EasyNegativeV2, ng_deepnegative_v1_75t',
+  useLora: false,
+  loras: [], // 改为数组，支持多个 Lora: [{id: 'xxx', weight: 0.7}, ...]
   steps: 20,
   scale: 6.0,
   width: 512,
@@ -101,27 +103,38 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
   // 2. 合并设置和覆盖参数
   const finalParams = {
     modelId: overrides.modelId || settings.modelId,
-    loraId: overrides.loraId || settings.loraId,
-    loraWeight: overrides.loraWeight || settings.loraWeight,
+    samplingMethod: overrides.sampler || settings.samplingMethod,
     steps: overrides.steps || settings.steps,
     scale: overrides.scale || settings.scale,
     width: overrides.width || settings.width,
     height: overrides.height || settings.height,
     negativePrompt: negativePrompt || settings.negativePrompt,
-    // PixAI 支持的采样器，这里我们硬编码一个，或者允许覆盖
-    samplingMethod: overrides.sampler || 'DPM++ 2M Karras',
+    useLora: settings.useLora,
+    loras: settings.loras || [],
   };
 
-  // 3. 构建 Lora (如果 Lora ID 存在)
-  const loraPayload = {};
-  if (finalParams.loraId) {
-    loraPayload[finalParams.loraId] = finalParams.loraWeight;
+  // 3. 添加提示词前缀
+  let finalPrompt = prompt;
+  if (settings.promptPrefix && settings.promptPrefix.trim()) {
+    const prefix = settings.promptPrefix.trim();
+    // 确保前缀和提示词之间有空格
+    finalPrompt = prefix.endsWith(',') ? `${prefix} ${prompt}` : `${prefix}, ${prompt}`;
   }
 
-  // 4. 构建请求体 (基于您提供的官方示例结构)
+  // 4. 构建 Lora (仅当启用 Lora 且有 Lora 列表时)
+  const loraPayload = {};
+  if (finalParams.useLora && finalParams.loras && finalParams.loras.length > 0) {
+    finalParams.loras.forEach(lora => {
+      if (lora.id && lora.id.trim()) {
+        loraPayload[lora.id.trim()] = lora.weight;
+      }
+    });
+  }
+
+  // 5. 构建请求体 (基于您提供的官方示例结构)
   const taskPayload = {
     parameters: {
-      prompts: prompt,
+      prompts: finalPrompt,
       negativePrompts: finalParams.negativePrompt,
       modelId: finalParams.modelId,
       width: finalParams.width,
@@ -216,19 +229,98 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
 }
 
 /**
+ * 渲染 Lora 列表
+ */
+function renderLoraList() {
+  const $list = $('#pixai_lora_list');
+  $list.empty();
+
+  if (!settings.loras) {
+    settings.loras = [];
+  }
+
+  settings.loras.forEach((lora, index) => {
+    const $item = $(`
+      <div class="pixai_lora_item" data-index="${index}">
+        <div class="pixai_lora_item_fields">
+          <div class="pixai_lora_item_field">
+            <label>Lora ID</label>
+            <input type="text" class="text_pole pixai_lora_id_input" value="${
+              lora.id || ''
+            }" placeholder="例如: 1744880666293972790" />
+          </div>
+          <div class="pixai_lora_item_field" style="flex: 0 0 150px;">
+            <label>权重</label>
+            <input type="number" class="text_pole pixai_lora_weight_input" value="${
+              lora.weight || 0.7
+            }" step="0.1" min="0" max="1" />
+          </div>
+        </div>
+        <button type="button" class="pixai_lora_remove">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    `);
+
+    // 绑定输入事件
+    $item.find('.pixai_lora_id_input').on('input', function () {
+      settings.loras[index].id = $(this).val();
+      saveSettingsDebounced();
+    });
+
+    $item.find('.pixai_lora_weight_input').on('input', function () {
+      settings.loras[index].weight = Number($(this).val());
+      saveSettingsDebounced();
+    });
+
+    // 绑定删除按钮
+    $item.find('.pixai_lora_remove').on('click', function () {
+      settings.loras.splice(index, 1);
+      saveSettingsDebounced();
+      renderLoraList();
+    });
+
+    $list.append($item);
+  });
+}
+
+/**
+ * 添加新的 Lora
+ */
+function addLora() {
+  if (!settings.loras) {
+    settings.loras = [];
+  }
+  settings.loras.push({ id: '', weight: 0.7 });
+  saveSettingsDebounced();
+  renderLoraList();
+}
+
+/**
  * 加载设置 (UI)
  */
 async function loadSettings() {
   // 填充设置值
   $('#pixai_api_key').val(settings.apiKey);
   $('#pixai_model_id').val(settings.modelId);
-  $('#pixai_lora_id').val(settings.loraId);
-  $('#pixai_lora_weight').val(settings.loraWeight);
+  $('#pixai_sampling_method').val(settings.samplingMethod);
+  $('#pixai_prompt_prefix').val(settings.promptPrefix);
   $('#pixai_negative_prompt').val(settings.negativePrompt);
+  $('#pixai_use_lora').prop('checked', settings.useLora);
   $('#pixai_steps, #pixai_steps_value').val(settings.steps);
   $('#pixai_scale, #pixai_scale_value').val(settings.scale);
   $('#pixai_width, #pixai_width_value').val(settings.width);
   $('#pixai_height, #pixai_height_value').val(settings.height);
+
+  // 渲染 Lora 列表
+  renderLoraList();
+
+  // 根据 useLora 显示/隐藏 Lora 设置
+  if (settings.useLora) {
+    $('#pixai_lora_settings').show();
+  } else {
+    $('#pixai_lora_settings').hide();
+  }
 }
 
 /**
@@ -314,12 +406,12 @@ jQuery(async () => {
     settings.modelId = $('#pixai_model_id').val();
     saveSettingsDebounced();
   });
-  $('#pixai_lora_id').on('input', () => {
-    settings.loraId = $('#pixai_lora_id').val();
+  $('#pixai_sampling_method').on('change', () => {
+    settings.samplingMethod = $('#pixai_sampling_method').val();
     saveSettingsDebounced();
   });
-  $('#pixai_lora_weight').on('input', () => {
-    settings.loraWeight = Number($('#pixai_lora_weight').val());
+  $('#pixai_prompt_prefix').on('input', () => {
+    settings.promptPrefix = $('#pixai_prompt_prefix').val();
     saveSettingsDebounced();
   });
   $('#pixai_negative_prompt').on('input', async function () {
@@ -329,6 +421,20 @@ jQuery(async () => {
       const { resetScrollHeight } = await import('../../../../utils.js'); // 修正为4层路径
       await resetScrollHeight($(this));
     }
+  });
+  $('#pixai_use_lora').on('change', () => {
+    settings.useLora = $('#pixai_use_lora').prop('checked');
+    // 显示/隐藏 Lora 设置
+    if (settings.useLora) {
+      $('#pixai_lora_settings').slideDown(200);
+    } else {
+      $('#pixai_lora_settings').slideUp(200);
+    }
+    saveSettingsDebounced();
+  });
+  // 绑定添加 Lora 按钮
+  $('#pixai_add_lora').on('click', () => {
+    addLora();
   });
   $('#pixai_steps').on('input', () => {
     settings.steps = Number($('#pixai_steps').val());

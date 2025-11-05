@@ -19,11 +19,26 @@
       <label for="pixai_model_id">默认模型 ID (Model ID)</label>
       <input id="pixai_model_id" type="text" class="text_pole" placeholder="例如: 1648918127446573124" />
 
-      <label for="pixai_lora_id">默认 Lora ID (可选)</label>
-      <input id="pixai_lora_id" type="text" class="text_pole" placeholder="例如: 1744880666293972790" />
+      <label for="pixai_sampling_method">采样器 (Sampling Method)</label>
+      <select id="pixai_sampling_method" class="text_pole">
+        <option value="Euler a">Euler a</option>
+        <option value="Euler">Euler</option>
+        <option value="DPM++ 2M Karras" selected>DPM++ 2M Karras</option>
+        <option value="DPM++ SDE Karras">DPM++ SDE Karras</option>
+        <option value="DPM++ 2M SDE Karras">DPM++ 2M SDE Karras</option>
+        <option value="DDIM">DDIM</option>
+        <option value="PLMS">PLMS</option>
+        <option value="UniPC">UniPC</option>
+      </select>
 
-      <label for="pixai_lora_weight">默认 Lora 权重 (可选)</label>
-      <input id="pixai_lora_weight" type="number" class="text_pole" step="0.1" value="0.7" />
+      <label for="pixai_prompt_prefix">常见提示词前缀</label>
+      <input
+        id="pixai_prompt_prefix"
+        type="text"
+        class="text_pole"
+        placeholder="best quality, absurdres, masterpiece,"
+      />
+      <i>这些词会自动添加到每次生成的提示词前面</i>
 
       <label for="pixai_negative_prompt">默认负面提示词</label>
       <textarea
@@ -31,6 +46,25 @@
         class="text_pole textarea_compact autoSetHeight"
         placeholder="worst quality, low quality..."
       ></textarea>
+
+      <hr />
+      <h4>Lora 设置</h4>
+
+      <label class="checkbox_label" for="pixai_use_lora">
+        <input id="pixai_use_lora" type="checkbox" />
+        <span>使用 Lora</span>
+      </label>
+      <i style="display: block; margin-top: 5px; color: #888"> 请检查您的订阅层级以确定您可以使用多少个 Lora </i>
+
+      <div id="pixai_lora_settings" style="display: none; margin-top: 10px">
+        <div id="pixai_lora_list"></div>
+
+        <button id="pixai_add_lora" type="button" class="menu_button" style="margin-top: 10px">
+          <i class="fa-solid fa-plus"></i> 添加 Lora
+        </button>
+      </div>
+
+      <hr />
 
       <div class="flex-container">
         <div class="alignitemscenter flex-container flexFlowColumn flexGrow flexShrink gap0 flexBasis48p">

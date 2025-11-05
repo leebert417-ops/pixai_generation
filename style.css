@@ -1,32 +1,78 @@
 /* 基础设置样式 */
 .pixai_settings label:not(.checkbox_label) {
-    display: block;
-    margin-top: 10px;
+  display: block;
+  margin-top: 10px;
 }
 
 .pixai_settings .flex-container {
-    display: flex;
-    gap: 10px;
+  display: flex;
+  gap: 10px;
 }
 
 .pixai_settings .flexBasis48p {
-    flex-basis: 48%;
+  flex-basis: 48%;
 }
 .pixai_settings .flexGrow {
-    flex-grow: 1;
+  flex-grow: 1;
 }
 .pixai_settings .flexShrink {
-    flex-shrink: 1;
+  flex-shrink: 1;
 }
 .pixai_settings .flexFlowColumn {
-    flex-flow: column;
+  flex-flow: column;
 }
 .pixai_settings .alignitemscenter {
-    align-items: center;
+  align-items: center;
 }
 .pixai_settings .gap0 {
-    gap: 0;
+  gap: 0;
 }
 .pixai_settings .marginBot5 {
-    margin-bottom: 5px;
+  margin-bottom: 5px;
+}
+
+/* Lora 列表样式 */
+.pixai_lora_item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+}
+
+.pixai_lora_item_fields {
+  flex: 1;
+  display: flex;
+  gap: 10px;
+}
+
+.pixai_lora_item_field {
+  flex: 1;
+}
+
+.pixai_lora_item_field label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 0.9em;
+}
+
+.pixai_lora_item_field input {
+  width: 100%;
+}
+
+.pixai_lora_remove {
+  flex-shrink: 0;
+  padding: 8px 12px;
+  background: rgba(255, 0, 0, 0.2);
+  border: 1px solid rgba(255, 0, 0, 0.4);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.pixai_lora_remove:hover {
+  background: rgba(255, 0, 0, 0.3);
+  border-color: rgba(255, 0, 0, 0.6);
 }

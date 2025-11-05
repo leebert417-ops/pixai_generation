@@ -57,16 +57,42 @@ python pixai_proxy.py
 
 ### 可用参数
 
-| 参数 | 说明 | 默认值 |
-|------|------|--------|
-| `--negative` | 负面提示词 | 从设置中读取 |
-| `--width` | 图像宽度 | 512 |
-| `--height` | 图像高度 | 768 |
-| `--steps` | 采样步数 | 20 |
-| `--scale` | CFG Scale | 6.0 |
-| `--model` | 模型 ID | 从设置中读取 |
-| `--lora` | Lora ID | 从设置中读取 |
-| `--lora-weight` | Lora 权重 | 0.7 |
+| 参数            | 说明       | 默认值       |
+| --------------- | ---------- | ------------ |
+| `--negative`    | 负面提示词 | 从设置中读取 |
+| `--width`       | 图像宽度   | 512          |
+| `--height`      | 图像高度   | 768          |
+| `--steps`       | 采样步数   | 20           |
+| `--scale`       | CFG Scale  | 6.0          |
+| `--model`       | 模型 ID    | 从设置中读取 |
+| `--lora`        | Lora ID    | 从设置中读取 |
+| `--lora-weight` | Lora 权重  | 0.7          |
+
+### 设置说明
+
+#### 常见提示词前缀
+- 自动添加到每次生成的提示词前面
+- 默认值：`best quality, absurdres, masterpiece,`
+- 示例：如果设置前缀为 `best quality, masterpiece,`，输入提示词 `1girl, smile`，实际发送的提示词为 `best quality, masterpiece, 1girl, smile`
+- 留空则不添加前缀
+
+#### 采样器 (Sampling Method)
+扩展支持以下采样器：
+- **Euler a** - 快速，适合简单图像
+- **Euler** - 稳定的基础采样器
+- **DPM++ 2M Karras** (默认) - 高质量，推荐使用
+- **DPM++ SDE Karras** - 更多细节，速度较慢
+- **DPM++ 2M SDE Karras** - 最高质量，最慢
+- **DDIM** - 经典采样器
+- **PLMS** - 快速采样器
+- **UniPC** - 新型高效采样器
+
+#### Lora 设置
+- 勾选 "使用 Lora" 后才会应用 Lora 模型
+- 支持添加多个 Lora（点击 "添加 Lora" 按钮）
+- 每个 Lora 可以单独设置 ID 和权重
+- Lora 权重范围：0.0 - 1.0（推荐 0.5 - 0.8）
+- **注意**：请检查您的 PixAI 订阅层级以确定可以使用多少个 Lora
 
 ## 技术说明
 
