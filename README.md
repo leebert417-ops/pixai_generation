@@ -21,11 +21,12 @@ https://github.com/leebert417-ops/pixai_generation.git
 
 由于浏览器 CORS 限制，需要手动运行一个本地代理服务器。
 
-**操作步骤:**
+#### 桌面端用户 (Windows/Mac/Linux)
 
-1.  打开您的终端 (例如 `cmd`, `PowerShell`, 或 `Termux`)。
+1.  打开您的终端 (例如 `cmd`, `PowerShell`, 或 `Terminal`)。
 2.  进入此扩展的目录：
     ```bash
+    # 示例路径，请替换为您的实际路径
     cd /path/to/SillyTavern/public/scripts/extensions/third-party/pixai_generation
     ```
 3.  使用 Node.js 启动代理服务器：
@@ -33,6 +34,22 @@ https://github.com/leebert417-ops/pixai_generation.git
     node pixai_proxy.js
     ```
 4.  看到 "PixAI API 代理服务器已启动" 的提示后，**保持此终端窗口运行**。
+
+#### 移动端用户 (Termux)
+
+操作步骤与桌面端类似，但您需要在 Termux 中管理多个会话。
+
+1.  打开 Termux，在一个会话中启动 SillyTavern 主程序。
+2.  **新建一个会话** (通常从左侧边缘向右滑动，点击 "New session")。
+3.  在新的会话中，进入此扩展的目录。路径可能类似如下 (请根据您的实际路径修改):
+    ```bash
+    cd /storage/20BC-D5E4/public/scripts/extensions/third-party/pixai_generation
+    ```
+4.  使用 Node.js 启动代理服务器：
+    ```bash
+    node pixai_proxy.js
+    ```
+5.  看到 "PixAI API 代理服务器已启动" 的提示后，**保持此 Termux 会话在后台运行**。
 
 ### 2. 确认代理运行状态
 
