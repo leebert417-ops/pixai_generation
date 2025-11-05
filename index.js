@@ -232,6 +232,12 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
   throw new Error('PixAI 任务超时。');
 }
 
+
+
+
+
+
+
 /**
  * 检查代理服务器状态
  */
@@ -245,13 +251,16 @@ async function checkProxyStatus() {
     if (response.ok) {
       const data = await response.json();
       updateProxyStatus(true, data.message || '代理服务器运行中');
+      toastr.success('代理服务器运行正常！', 'PixAI'); // 添加成功提示
       return true;
     } else {
       updateProxyStatus(false, '代理服务器响应异常');
+      toastr.error('代理服务器响应异常！', 'PixAI'); // 添加异常提示
       return false;
     }
   } catch (error) {
     updateProxyStatus(false, '代理服务器未运行');
+    toastr.error('代理服务器未运行！', 'PixAI'); // 添加未运行提示
     return false;
   }
 }
@@ -265,34 +274,6 @@ function updateProxyStatus(isRunning, message) {
     $statusText.html(`<span style="color: #4caf50">✅ ${message}</span>`);
   } else {
     $statusText.html(`<span style="color: #f44336">❌ ${message}</span>`);
-  }
-}
-
-/**
- * 启动代理服务器
- */
-async function startProxyServer() {
-  toastr.info('正在启动代理服务器...', 'PixAI');
-
-  try {
-    // 检查是否已经在运行
-    const isRunning = await checkProxyStatus();
-    if (isRunning) {
-      toastr.success('代理服务器已经在运行', 'PixAI');
-      return;
-    }
-
-    // 尝试通过 Node.js 启动
-    // 注意：浏览器环境无法直接启动进程，需要用户手动启动
-    toastr.warning('请手动运行 start_proxy_node.bat 启动代理服务器', 'PixAI', { timeOut: 5000 });
-
-    // 打开文件所在目录（如果可能）
-    // 这在浏览器中无法实现，只能提示用户
-    const extensionPath = window.location.origin + '/scripts/extensions/third-party/pixai_generation/';
-    console.log('代理服务器脚本位置:', extensionPath);
-  } catch (error) {
-    console.error('启动代理服务器失败:', error);
-    toastr.error('启动代理服务器失败: ' + error.message, 'PixAI');
   }
 }
 
@@ -471,14 +452,12 @@ jQuery(async () => {
     await checkProxyStatus();
   });
 
-  $('#pixai_start_proxy').on('click', async () => {
-    await startProxyServer();
-  });
-
   // 3. 初始检查代理服务器状态
   setTimeout(() => {
     checkProxyStatus();
   }, 1000);
+
+
 
   // 4. 绑定设置事件监听
   $('#pixai_api_key').on('input', () => {

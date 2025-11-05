@@ -157,19 +157,24 @@ pip install flask flask-cors requests
 ## 常见问题
 
 ### Q: 提示 "Failed to fetch"
-**A:** 确保代理服务器正在运行（`python pixai_proxy.py`）
+
+**A:** 确保代理服务器正在运行
 
 ### Q: 提示 "API 密钥未设置"
+
 **A:** 在 Extensions 设置中输入你的 PixAI API 密钥
 
 ### Q: 图像生成失败
+
 **A:** 检查：
+
 1. 代理服务器是否运行
 2. API 密钥是否正确
 3. 模型 ID 是否有效
 4. 网络连接是否正常
 
 ### Q: 如何获取 PixAI API 密钥？
+
 **A:** 访问 [PixAI 官网](https://pixai.art) 并在账户设置中生成 API 密钥
 
 ## 许可证
@@ -178,5 +183,5 @@ MIT License
 
 ## 作者
 
+niuma
 Created for SillyTavern community
-

@@ -34,6 +34,10 @@ function parseBody(req) {
  * 转发请求到 PixAI API
  */
 function proxyRequest(path, method, headers, body, res) {
+  // The client sends the token in 'x-api-key'. The API expects 'Authorization: Bearer <token>'.
+  // We'll check both 'x-api-key' and 'authorization' for robustness.
+  const apiToken = headers['x-api-key'] || headers['authorization'];
+
   const options = {
     hostname: 'api.pixai.art',
     port: 443,
@@ -41,7 +45,9 @@ function proxyRequest(path, method, headers, body, res) {
     method: method,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: headers.authorization || '',
+      // Format the header as "Bearer <token>" if the token exists.
+      // Also, remove "Bearer " from the token if it's already there to avoid "Bearer Bearer ...".
+      'Authorization': apiToken ? `Bearer ${apiToken.replace(/^Bearer\s+/, '')}` : '',
       'User-Agent': 'SillyTavern-PixAI-Extension/1.0',
     },
   };
