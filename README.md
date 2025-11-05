@@ -27,7 +27,7 @@ https://github.com/leebert417-ops/pixai_generation.git
 2.  进入此扩展的目录：
     ```bash
     # 示例路径，请替换为您的实际路径
-    cd /path/to/SillyTavern/public/scripts/extensions/third-party/pixai_generation
+    cd SillyTavern/public/scripts/extensions/third-party/pixai_generation
     ```
 3.  使用 Node.js 启动代理服务器：
     ```bash
