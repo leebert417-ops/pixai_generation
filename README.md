@@ -43,7 +43,7 @@ https://github.com/leebert417-ops/pixai_generation.git
 2.  **新建一个会话** (点击左下角ESC右侧的三个横杠，然后点击 "New session")。
 3.  在新的会话中，进入此扩展的目录。路径可能类似如下 (请根据您的实际路径修改):
     ```bash
-    cd /storage/20BC-D5E4/public/scripts/extensions/third-party/pixai_generation
+    cd SillyTavern/public/scripts/extensions/third-party/pixai_generation
     ```
 4.  使用 Node.js 启动代理服务器：
     ```bash
