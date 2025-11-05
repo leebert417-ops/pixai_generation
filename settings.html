@@ -32,7 +32,12 @@
       <label for="pixai_api_key">
         <strong>PixAI API 密钥 (API Key)</strong>
       </label>
-      <input id="pixai_api_key" type="password" class="text_pole" placeholder="输入您的 PixAI API 密钥" />
+      <div style="display: flex; gap: 5px;">
+        <input id="pixai_api_key" type="password" class="text_pole" placeholder="输入您的 PixAI API 密钥" style="flex-grow: 1;" />
+        <button id="pixai_toggle_api_key_visibility" type="button" class="menu_button" title="显示/隐藏 API 密钥">
+          <i class="fa-solid fa-eye"></i>
+        </button>
+      </div>
       <i>请在 PixAI 网站获取您的 API 令牌 (Bearer Token)</i>
 
       <hr />

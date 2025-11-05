@@ -518,6 +518,17 @@ jQuery(async () => {
     settings.apiKey = String($('#pixai_api_key').val());
     saveSettingsDebounced();
   });
+  $('#pixai_toggle_api_key_visibility').on('click', function() {
+    const $apiKeyInput = $('#pixai_api_key');
+    const $icon = $(this).find('i');
+    if ($apiKeyInput.attr('type') === 'password') {
+      $apiKeyInput.attr('type', 'text');
+      $icon.removeClass('fa-eye').addClass('fa-eye-slash');
+    } else {
+      $apiKeyInput.attr('type', 'password');
+      $icon.removeClass('fa-eye-slash').addClass('fa-eye');
+    }
+  });
   $('#pixai_model_id').on('input', () => {
     settings.modelId = $('#pixai_model_id').val();
     saveSettingsDebounced();
