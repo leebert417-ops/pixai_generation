@@ -7,6 +7,29 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
+      <!-- 代理服务器状态 -->
+      <div style="background: rgba(0, 0, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 15px">
+        <div style="display: flex; align-items: center; justify-content: space-between">
+          <div>
+            <strong>代理服务器状态</strong>
+            <div id="pixai_proxy_status" style="margin-top: 5px; font-size: 0.9em">
+              <span id="pixai_proxy_status_text" style="color: #888">未检测</span>
+            </div>
+          </div>
+          <div style="display: flex; gap: 10px">
+            <button id="pixai_check_proxy" type="button" class="menu_button" title="检查代理服务器状态">
+              <i class="fa-solid fa-rotate"></i> 检查
+            </button>
+            <button id="pixai_start_proxy" type="button" class="menu_button" title="启动代理服务器">
+              <i class="fa-solid fa-play"></i> 启动
+            </button>
+          </div>
+        </div>
+        <i style="display: block; margin-top: 8px; font-size: 0.85em; color: #888">
+          代理服务器用于绕过浏览器 CORS 限制。请确保代理服务器正在运行。
+        </i>
+      </div>
+
       <label for="pixai_api_key">
         <strong>PixAI API 密钥 (API Key)</strong>
       </label>

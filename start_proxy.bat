@@ -1,44 +1,35 @@
 @echo off
+chcp 65001 >nul
 echo ========================================
-echo PixAI 代理服务器启动脚本
+echo   ?? PixAI ????? (Node.js)
 echo ========================================
 echo.
 
-REM 检查 Python 是否安装
-python --version >nul 2>&1
-if errorlevel 1 (
-    echo [错误] 未找到 Python！
-    echo 请先安装 Python 3.7 或更高版本
-    pause
-    exit /b 1
+REM ?? Node.js
+set NODE_PATH=
+where node >nul 2>&1
+if %errorlevel% equ 0 (
+    set NODE_PATH=node
+    goto :found_node
 )
 
-REM 检查并安装依赖
-echo [1/2] 检查依赖...
-python -m pip show flask >nul 2>&1
-if errorlevel 1 (
-    echo [安装] Flask...
-    python -m pip install flask
+REM ?? SillyTavern ? Node.js
+if exist "D:\vpnapps\jiuguan\SillyTavern-Launcher\app-win\node.exe" (
+    set NODE_PATH=D:\vpnapps\jiuguan\SillyTavern-Launcher\app-win\node.exe
+    goto :found_node
 )
 
-python -m pip show flask-cors >nul 2>&1
-if errorlevel 1 (
-    echo [安装] Flask-CORS...
-    python -m pip install flask-cors
-)
+echo  ??? Node.js?
+echo ?????? Node.js ? SillyTavern
+pause
+exit /b 1
 
-python -m pip show requests >nul 2>&1
-if errorlevel 1 (
-    echo [安装] Requests...
-    python -m pip install requests
-)
-
+:found_node
+echo  ?? Node.js: %NODE_PATH%
 echo.
-echo [2/2] 启动代理服务器...
+echo ?????????...
 echo.
 
-REM 启动代理服务器
-python pixai_proxy.py
+"%NODE_PATH%" "%~dp0pixai_proxy.js"
 
 pause
-

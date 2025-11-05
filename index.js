@@ -18,6 +18,10 @@ import { getBase64Async, saveBase64AsFile } from '../../../utils.js'; // 路径�
 // 定义拓展名称
 const MODULE_NAME = 'pixai_generation'; // 用于 extension_settings 的键名
 const TEMPLATE_PATH = 'third-party/pixai_generation'; // 用于模板路径
+const PROXY_URL = 'http://127.0.0.1:5555'; // 代理服务器地址
+
+// 代理服务器进程 ID（如果从扩展启动）
+let proxyProcess = null;
 
 // 默认设置
 const defaultSettings = {
@@ -229,6 +233,70 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
 }
 
 /**
+ * 检查代理服务器状态
+ */
+async function checkProxyStatus() {
+  try {
+    const response = await fetch(`${PROXY_URL}/health`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(3000), // 3秒超时
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      updateProxyStatus(true, data.message || '代理服务器运行中');
+      return true;
+    } else {
+      updateProxyStatus(false, '代理服务器响应异常');
+      return false;
+    }
+  } catch (error) {
+    updateProxyStatus(false, '代理服务器未运行');
+    return false;
+  }
+}
+
+/**
+ * 更新代理服务器状态显示
+ */
+function updateProxyStatus(isRunning, message) {
+  const $statusText = $('#pixai_proxy_status_text');
+  if (isRunning) {
+    $statusText.html(`<span style="color: #4caf50">✅ ${message}</span>`);
+  } else {
+    $statusText.html(`<span style="color: #f44336">❌ ${message}</span>`);
+  }
+}
+
+/**
+ * 启动代理服务器
+ */
+async function startProxyServer() {
+  toastr.info('正在启动代理服务器...', 'PixAI');
+
+  try {
+    // 检查是否已经在运行
+    const isRunning = await checkProxyStatus();
+    if (isRunning) {
+      toastr.success('代理服务器已经在运行', 'PixAI');
+      return;
+    }
+
+    // 尝试通过 Node.js 启动
+    // 注意：浏览器环境无法直接启动进程，需要用户手动启动
+    toastr.warning('请手动运行 start_proxy_node.bat 启动代理服务器', 'PixAI', { timeOut: 5000 });
+
+    // 打开文件所在目录（如果可能）
+    // 这在浏览器中无法实现，只能提示用户
+    const extensionPath = window.location.origin + '/scripts/extensions/third-party/pixai_generation/';
+    console.log('代理服务器脚本位置:', extensionPath);
+  } catch (error) {
+    console.error('启动代理服务器失败:', error);
+    toastr.error('启动代理服务器失败: ' + error.message, 'PixAI');
+  }
+}
+
+/**
  * 渲染 Lora 列表
  */
 function renderLoraList() {
@@ -397,7 +465,22 @@ jQuery(async () => {
   const settingsHtml = await renderExtensionTemplateAsync(TEMPLATE_PATH, 'settings', defaultSettings);
   $('#extensions_settings').append(settingsHtml);
 
-  // 2. 绑定设置事件监听
+  // 2. 绑定代理服务器控制按钮
+  $('#pixai_check_proxy').on('click', async () => {
+    toastr.info('正在检查代理服务器状态...', 'PixAI');
+    await checkProxyStatus();
+  });
+
+  $('#pixai_start_proxy').on('click', async () => {
+    await startProxyServer();
+  });
+
+  // 3. 初始检查代理服务器状态
+  setTimeout(() => {
+    checkProxyStatus();
+  }, 1000);
+
+  // 4. 绑定设置事件监听
   $('#pixai_api_key').on('input', () => {
     settings.apiKey = String($('#pixai_api_key').val());
     saveSettingsDebounced();

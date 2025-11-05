@@ -20,15 +20,40 @@ SillyTavern 的 PixAI 图像生成扩展。
 
 ## 配置
 
-### 1. 启动代理服务器
+### 1. 启动代理服务器（Node.js 版本 - 无需 Python）
 
-由于浏览器 CORS 限制，需要运行本地代理服务器：
+由于浏览器 CORS 限制，需要运行本地代理服务器。**现在使用 Node.js 版本，无需安装 Python！**
 
+#### 方法 A：从扩展界面启动（推荐）
+
+1. 打开 SillyTavern 的 Extensions 设置
+2. 找到 "PixAI Generation" 扩展
+3. 查看 "代理服务器状态" 区域
+4. 点击 "检查" 按钮查看状态
+5. 如果显示 "❌ 代理服务器未运行"，点击 "启动" 按钮
+6. 按照提示手动运行 `start_proxy_node.bat`
+
+#### 方法 B：手动启动
+
+**Windows**:
 ```bash
-python pixai_proxy.py
+# 双击运行
+start_proxy_node.bat
+
+# 或手动运行
+node pixai_proxy.js
 ```
 
-或双击运行 `start_proxy.bat`（Windows）
+**确认代理运行**：
+- 代理服务器地址：`http://127.0.0.1:5555`
+- 健康检查：访问 `http://127.0.0.1:5555/health`
+- 或在扩展界面点击 "检查" 按钮
+
+**优势**：
+- ✅ 无需 Python：使用 Node.js（SillyTavern 已包含）
+- ✅ 更轻量：无需安装额外依赖
+- ✅ 状态监控：扩展界面实时显示代理状态
+- ✅ 一键检查：点击按钮即可检查代理是否运行
 
 ### 2. 设置 API 密钥
 

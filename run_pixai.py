@@ -127,7 +127,7 @@ def wait_for_completion(api_token, task_id, poll_interval=10, max_wait_time=300)
 if __name__ == "__main__":
     
     # ⚠️ 警告: 请将 'your_api_token_here' 替换为您自己的有效 API 令牌
-    API_TOKEN = "your_api_token_here" 
+    API_TOKEN = "sk-1KNX1wFgQTiafoSaTJPhkVwMXyuDlsvs/nleD84kVNA0emq2" 
     
     if API_TOKEN == "your_api_token_here":
         print("======================================================================")
