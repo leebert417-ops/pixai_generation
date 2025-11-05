@@ -14,27 +14,27 @@ if errorlevel 1 (
 )
 
 REM 检查并安装依赖
-echo [1/3] 检查依赖...
-pip show flask >nul 2>&1
+echo [1/2] 检查依赖...
+python -m pip show flask >nul 2>&1
 if errorlevel 1 (
     echo [安装] Flask...
-    pip install flask
+    python -m pip install flask
 )
 
-pip show flask-cors >nul 2>&1
+python -m pip show flask-cors >nul 2>&1
 if errorlevel 1 (
     echo [安装] Flask-CORS...
-    pip install flask-cors
+    python -m pip install flask-cors
 )
 
-pip show requests >nul 2>&1
+python -m pip show requests >nul 2>&1
 if errorlevel 1 (
     echo [安装] Requests...
-    pip install requests
+    python -m pip install requests
 )
 
 echo.
-echo [2/3] 启动代理服务器...
+echo [2/2] 启动代理服务器...
 echo.
 
 REM 启动代理服务器

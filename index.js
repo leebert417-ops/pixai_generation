@@ -18,7 +18,6 @@ import { getBase64Async, saveBase64AsFile } from '../../../utils.js'; // 路径�
 // 定义拓展名称
 const MODULE_NAME = 'pixai_generation'; // 用于 extension_settings 的键名
 const TEMPLATE_PATH = 'third-party/pixai_generation'; // 用于模板路径
-const EXTENSION_NAME = 'PixAI Generation';
 
 // 默认设置
 const defaultSettings = {
@@ -40,8 +39,8 @@ if (extension_settings[MODULE_NAME] === undefined) {
 }
 const settings = extension_settings[MODULE_NAME];
 
-// API 端点
-const PIXAI_API_BASE = 'https://api.pixai.art/v1';
+// API 端点 - 使用本地代理避免 CORS 问题
+const PIXAI_PROXY_BASE = 'http://127.0.0.1:5555/pixai';
 const POLL_INTERVAL_MS = 5000; // 5秒轮询一次
 const MAX_WAIT_TIME_MS = 300000; // 5分钟超时
 
@@ -93,8 +92,9 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
     throw new Error('PixAI API 密钥未设置。请在拓展设置中配置。');
   }
 
+  // 使用代理时，API 密钥通过自定义 header 传递
   const headers = {
-    Authorization: `Bearer ${token}`,
+    'X-API-Key': token,
     'Content-Type': 'application/json',
   };
 
@@ -136,7 +136,7 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
 
   // --- 步骤 1: 创建任务 ---
   toastr.info('正在创建任务...', 'PixAI');
-  const createResponse = await fetch(`${PIXAI_API_BASE}/task`, {
+  const createResponse = await fetch(`${PIXAI_PROXY_BASE}/task`, {
     method: 'POST',
     headers: headers,
     body: JSON.stringify(taskPayload),
@@ -165,7 +165,7 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
       throw new Error('PixAI 任务被用户中止。');
     }
 
-    const statusResponse = await fetch(`${PIXAI_API_BASE}/task/${taskId}`, {
+    const statusResponse = await fetch(`${PIXAI_PROXY_BASE}/task/${taskId}`, {
       method: 'GET',
       headers: headers,
       signal: signal,
@@ -181,46 +181,25 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
     console.log(`[PixAI] 任务 ${taskId} 状态: ${status}`);
 
     if (status === 'completed') {
-      // 3. 获取图像 URL (基于您提供的官方示例结构)
+      // 3. 获取图像 URL (基于官方示例结构)
       const mediaUrls = statusData.outputs?.mediaUrls || [];
       if (mediaUrls.length > 0) {
         const imageUrl = mediaUrls[0];
         console.log(`[PixAI] 图像 URL: ${imageUrl}`);
 
-        // --- 步骤 4: 使用 SillyTavern 的后端下载图像 ---
+        // --- 步骤 4: 下载图像并转为 Base64 ---
         toastr.info('正在下载图像...', 'PixAI');
-
-        // 使用 SillyTavern 的 /api/content/importURL 端点下载图片
-        const importResponse = await fetch('/api/content/importURL', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ url: imageUrl }),
-          signal: signal,
-        });
-
-        if (!importResponse.ok) {
-          throw new Error(`无法下载图像: ${importResponse.statusText}`);
+        const imageResponse = await fetch(imageUrl, { signal: signal });
+        if (!imageResponse.ok) {
+          throw new Error('无法从 PixAI URL 下载图像。');
         }
+        const imageBlob = await imageResponse.blob();
+        const base64DataUrl = await getBase64Async(imageBlob);
 
-        const importData = await importResponse.json();
-
-        // importURL 返回的是文件路径，我们需要读取文件内容
-        // 但更简单的方法是直接使用返回的 base64 数据（如果有）
-        if (importData.path) {
-          // 读取文件并转换为 base64
-          const fileResponse = await fetch(importData.path);
-          const fileBlob = await fileResponse.blob();
-          const base64DataUrl = await getBase64Async(fileBlob);
-
-          return {
-            format: 'png',
-            data: base64DataUrl.split(',')[1],
-          };
-        } else {
-          throw new Error('下载图像失败：未返回文件路径');
-        }
+        return {
+          format: imageBlob.type.split('/')[1] || 'png',
+          data: base64DataUrl.split(',')[1], // 移除 "data:image/png;base64," 前缀
+        };
       } else {
         throw new Error('PixAI 任务完成，但未返回 mediaUrls。');
       }
@@ -378,27 +357,5 @@ jQuery(async () => {
   // 4. 加载保存的设置值
   await loadSettings();
 
-  // 调试信息
   console.log('[PixAI] Extension loaded.');
-  console.log('[PixAI] API Key set:', !!settings.apiKey);
-
-  // 添加一个测试命令来检查密钥
-  SlashCommandParser.addCommandObject(
-    SlashCommand.fromProps({
-      name: 'pixai-test-key',
-      callback: () => {
-        const key = getPixaiApiKey();
-        if (key) {
-          console.log('[PixAI] API Key exists. Length:', key.length);
-          console.log('[PixAI] First 10 chars:', key.substring(0, 10) + '...');
-          toastr.success(`API 密钥已设置（长度: ${key.length}）`, 'PixAI 测试');
-        } else {
-          console.log('[PixAI] API Key NOT set');
-          toastr.error('API 密钥未设置', 'PixAI 测试');
-        }
-        return key ? 'Key is set' : 'Key is NOT set';
-      },
-      helpString: '测试 PixAI API 密钥是否已设置',
-    }),
-  );
 });
