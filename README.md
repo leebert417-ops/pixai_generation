@@ -40,7 +40,7 @@ https://github.com/leebert417-ops/pixai_generation.git
 操作步骤与桌面端类似，但您需要在 Termux 中管理多个会话。
 
 1.  打开 Termux，在一个会话中启动 SillyTavern 主程序。
-2.  **新建一个会话** (通常从左侧边缘向右滑动，点击 "New session")。
+2.  **新建一个会话** (点击左下角ESC右侧的三个横杠，然后点击 "New session")。
 3.  在新的会话中，进入此扩展的目录。路径可能类似如下 (请根据您的实际路径修改):
     ```bash
     cd /storage/20BC-D5E4/public/scripts/extensions/third-party/pixai_generation
