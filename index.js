@@ -6,7 +6,6 @@
 import { eventSource, event_types, saveSettingsDebounced } from '../../../../script.js'; // script.js 在根目录，4层路径
 import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js'; // 路径从 ../../ 变为 ../../../
 import { humanizedDateTime } from '../../../RossAscends-mods.js'; // RossAscends-mods.js 在 public/ 目录下，3层路径
-import { SECRET_KEYS, secret_state } from '../../../secrets.js'; // 路径从 ../../ 变为 ../../../
 import { SlashCommand } from '../../../slash-commands/SlashCommand.js'; // 路径从 ../../ 变为 ../../../
 import {
   ARGUMENT_TYPE,
@@ -21,13 +20,9 @@ const MODULE_NAME = 'pixai_generation'; // 用于 extension_settings 的键名
 const TEMPLATE_PATH = 'third-party/pixai_generation'; // 用于模板路径
 const EXTENSION_NAME = 'PixAI Generation';
 
-// 为 ST 的密钥管理器定义密钥名称
-if (!SECRET_KEYS.PIXAI) {
-  SECRET_KEYS.PIXAI = 'api_key_pixai';
-}
-
 // 默认设置
 const defaultSettings = {
+  apiKey: '', // API 密钥存储在扩展设置中
   modelId: '1648918127446573124',
   loraId: '',
   loraWeight: 0.7,
@@ -76,6 +71,13 @@ async function addChatMessage(message, isSystem = false) {
 }
 
 /**
+ * 获取 PixAI API 密钥
+ */
+function getPixaiApiKey() {
+  return settings.apiKey;
+}
+
+/**
  * 核心功能：调用 PixAI API
  * 这是一个异步轮询函数
  * @param {string} prompt - 提示词
@@ -86,7 +88,7 @@ async function addChatMessage(message, isSystem = false) {
  */
 async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal) {
   // 1. 从 ST 的安全存储中获取 API 密钥
-  const token = secret_state[SECRET_KEYS.PIXAI];
+  const token = getPixaiApiKey();
   if (!token) {
     throw new Error('PixAI API 密钥未设置。请在拓展设置中配置。');
   }
@@ -185,19 +187,40 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
         const imageUrl = mediaUrls[0];
         console.log(`[PixAI] 图像 URL: ${imageUrl}`);
 
-        // --- 步骤 4: 下载图像并转为 Base64 ---
+        // --- 步骤 4: 使用 SillyTavern 的后端下载图像 ---
         toastr.info('正在下载图像...', 'PixAI');
-        const imageResponse = await fetch(imageUrl, { signal: signal });
-        if (!imageResponse.ok) {
-          throw new Error('无法从 PixAI URL 下载图像。');
-        }
-        const imageBlob = await imageResponse.blob();
-        const base64DataUrl = await getBase64Async(imageBlob);
 
-        return {
-          format: imageBlob.type.split('/')[1] || 'png',
-          data: base64DataUrl.split(',')[1], // 移除 "data:image/png;base64," 前缀
-        };
+        // 使用 SillyTavern 的 /api/content/importURL 端点下载图片
+        const importResponse = await fetch('/api/content/importURL', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url: imageUrl }),
+          signal: signal,
+        });
+
+        if (!importResponse.ok) {
+          throw new Error(`无法下载图像: ${importResponse.statusText}`);
+        }
+
+        const importData = await importResponse.json();
+
+        // importURL 返回的是文件路径，我们需要读取文件内容
+        // 但更简单的方法是直接使用返回的 base64 数据（如果有）
+        if (importData.path) {
+          // 读取文件并转换为 base64
+          const fileResponse = await fetch(importData.path);
+          const fileBlob = await fileResponse.blob();
+          const base64DataUrl = await getBase64Async(fileBlob);
+
+          return {
+            format: 'png',
+            data: base64DataUrl.split(',')[1],
+          };
+        } else {
+          throw new Error('下载图像失败：未返回文件路径');
+        }
       } else {
         throw new Error('PixAI 任务完成，但未返回 mediaUrls。');
       }
@@ -218,6 +241,7 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
  */
 async function loadSettings() {
   // 填充设置值
+  $('#pixai_api_key').val(settings.apiKey);
   $('#pixai_model_id').val(settings.modelId);
   $('#pixai_lora_id').val(settings.loraId);
   $('#pixai_lora_weight').val(settings.loraWeight);
@@ -226,9 +250,6 @@ async function loadSettings() {
   $('#pixai_scale, #pixai_scale_value').val(settings.scale);
   $('#pixai_width, #pixai_width_value').val(settings.width);
   $('#pixai_height, #pixai_height_value').val(settings.height);
-
-  // 更新 API 密钥按钮的状态
-  $('#pixai_key').toggleClass('success', !!secret_state[SECRET_KEYS.PIXAI]);
 }
 
 /**
@@ -306,6 +327,10 @@ jQuery(async () => {
   $('#extensions_settings').append(settingsHtml);
 
   // 2. 绑定设置事件监听
+  $('#pixai_api_key').on('input', () => {
+    settings.apiKey = String($('#pixai_api_key').val());
+    saveSettingsDebounced();
+  });
   $('#pixai_model_id').on('input', () => {
     settings.modelId = $('#pixai_model_id').val();
     saveSettingsDebounced();
@@ -353,15 +378,27 @@ jQuery(async () => {
   // 4. 加载保存的设置值
   await loadSettings();
 
-  // 5. 监听 API 密钥的变化
-  eventSource.on(event_types.SECRET_WRITTEN, key => {
-    if (key === SECRET_KEYS.PIXAI) {
-      $('#pixai_key').addClass('success');
-    }
-  });
-  eventSource.on(event_types.SECRET_DELETED, key => {
-    if (key === SECRET_KEYS.PIXAI) {
-      $('#pixai_key').removeClass('success');
-    }
-  });
+  // 调试信息
+  console.log('[PixAI] Extension loaded.');
+  console.log('[PixAI] API Key set:', !!settings.apiKey);
+
+  // 添加一个测试命令来检查密钥
+  SlashCommandParser.addCommandObject(
+    SlashCommand.fromProps({
+      name: 'pixai-test-key',
+      callback: () => {
+        const key = getPixaiApiKey();
+        if (key) {
+          console.log('[PixAI] API Key exists. Length:', key.length);
+          console.log('[PixAI] First 10 chars:', key.substring(0, 10) + '...');
+          toastr.success(`API 密钥已设置（长度: ${key.length}）`, 'PixAI 测试');
+        } else {
+          console.log('[PixAI] API Key NOT set');
+          toastr.error('API 密钥未设置', 'PixAI 测试');
+        }
+        return key ? 'Key is set' : 'Key is NOT set';
+      },
+      helpString: '测试 PixAI API 密钥是否已设置',
+    }),
+  );
 });
