@@ -176,4 +176,3 @@ MIT License
 ## 作者
 
 niuma
-Created for SillyTavern community
