@@ -58,7 +58,7 @@ const defaultSettings = {
   height: 768,
   autoGeneration: {
     enabled: false,
-    regex: '<pix\\s+prompt="([^\"]*)"(?:\\s+width="(\\d+)")?(?:\\s+height="(\\d+)")?[^>]*?>/g',
+    regex: '<pix\\s+prompt="([^\"]*)"[^>]*?>/g',
     promptInjection: {
       enabled: false,
       prompt: '<image_generation>\nYou must insert a <pix prompt="example prompt"> at end of the reply. Prompts are used for stable diffusion image generation, based on the plot and character to output appropriate prompts to generate captivating images.\n</image_generation>',
@@ -684,18 +684,12 @@ eventSource.on(event_types.MESSAGE_RECEIVED, async function (messageId) {
     for (const match of matches) {
       const fullTag = match[0];
       const prompt = match[1];
-      const width = match[2] ? parseInt(match[2], 10) : null;
-      const height = match[3] ? parseInt(match[3], 10) : null;
 
       if (!prompt) continue;
 
       try {
-        // 1. 生成图片 (传入尺寸覆盖)
-        const overrides = {};
-        if (width) overrides.width = width;
-        if (height) overrides.height = height;
-
-        const result = await generatePixaiImage(prompt, settings.negativePrompt, overrides, new AbortController().signal);
+        // 1. 生成图片 (不传入尺寸覆盖)
+        const result = await generatePixaiImage(prompt, settings.negativePrompt, {}, new AbortController().signal);
         if (!result || !result.data) {
           throw new Error('API did not return image data.');
         }
