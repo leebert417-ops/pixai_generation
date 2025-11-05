@@ -7,6 +7,8 @@
       <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
+
+
       <!-- 代理服务器状态 -->
       <div style="background: rgba(0, 0, 0, 0.1); padding: 10px; border-radius: 5px; margin-bottom: 15px">
         <div style="display: flex; align-items: center; justify-content: space-between">
@@ -191,6 +193,47 @@
             step="64"
             value="768"
           />
+        </div>
+      </div>
+
+      <hr />
+      <!-- 自动生图设置 -->
+      <div class="pixai_auto_gen_settings" style="border: 1px solid var(--inline-drawer-border-color); padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+        <h4>自动生图模式</h4>
+        <label class="checkbox_label">
+          <input id="pixai_auto_generation_enabled" type="checkbox" />
+          <span>启用自动生图模式</span>
+        </label>
+        <i>启用后，拓展将自动检测 AI 回复中的图片标签并生成图片。</i>
+
+        <div style="margin-top: 10px;">
+          <label for="pixai_auto_gen_regex">图片标签正则表达式</label>
+          <textarea id="pixai_auto_gen_regex" class="text_pole textarea_compact" rows="2"><pix\s+prompt="([^"]*)"[^>]*?>/g</textarea>
+          <i>必须将提示词作为第一个捕获组。</i>
+        </div>
+
+        <!-- 提示词注入 -->
+        <div style="margin-top: 10px;">
+          <label class="checkbox_label">
+            <input id="pixai_prompt_injection_enabled" type="checkbox" />
+            <span>启用提示词注入</span>
+          </label>
+          <div id="pixai_prompt_injection_panel" style="display: none; margin-top: 5px;">
+            <label for="pixai_prompt_injection_text">提示词注入内容</label>
+            <textarea id="pixai_prompt_injection_text" class="text_pole textarea_compact" rows="3" placeholder="<image_generation>\nYou must insert a <pix prompt=\"example prompt\"> in the reply.\n</image_generation>"></textarea>
+            <div class="flex-container flexnowrap" style="margin-top: 5px;">
+              <label for="pixai_prompt_injection_position" class="flex1">注入位置</label>
+              <select id="pixai_prompt_injection_position" class="text_pole widthNatural margin0">
+                <option value="deep_system">@D ⚙️</option>
+                <option value="deep_user">@D 👤</option>
+                <option value="deep_assistant">@D 🤖</option>
+              </select>
+            </div>
+            <div class="flex-container flexnowrap" style="margin-top: 5px;">
+              <label for="pixai_prompt_injection_depth" class="flex1">注入深度</label>
+              <input id="pixai_prompt_injection_depth" class="text_pole widthUnset" type="number" min="0" value="0">
+            </div>
+          </div>
         </div>
       </div>
     </div>

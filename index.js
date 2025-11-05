@@ -13,12 +13,31 @@ import {
   SlashCommandNamedArgument,
 } from '../../../slash-commands/SlashCommandArgument.js'; // 路径从 ../../ 变为 ../../../
 import { SlashCommandParser } from '../../../slash-commands/SlashCommandParser.js'; // 路径从 ../../ 变为 ../../../
-import { getBase64Async, saveBase64AsFile } from '../../../utils.js'; // 路径从 ../../ 变为 ../../../
+import { getBase64Async, saveBase64AsFile, regexFromString } from '../../../utils.js'; // 路径从 ../../ 变为 ../../../
+import { updateMessageBlock } from '../../../../script.js';
 
 // 定义拓展名称
 const MODULE_NAME = 'pixai_generation'; // 用于 extension_settings 的键名
 const TEMPLATE_PATH = 'third-party/pixai_generation'; // 用于模板路径
 const PROXY_URL = 'http://127.0.0.1:5555'; // 代理服务器地址
+
+/**
+ * Escapes characters for safe inclusion inside HTML attribute values.
+ * @param {string} value
+ * @returns {string}
+ */
+function escapeHtmlAttribute(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
 
 // 代理服务器进程 ID（如果从扩展启动）
 let proxyProcess = null;
@@ -37,6 +56,16 @@ const defaultSettings = {
   scale: 6.0,
   width: 512,
   height: 768,
+  autoGeneration: {
+    enabled: false,
+    regex: '/<pix\\s+prompt="([^\"]*)"[^>]*?>/g',
+    promptInjection: {
+      enabled: false,
+      prompt: '<image_generation>\nYou must insert a <pix prompt="example prompt"> at end of the reply. Prompts are used for stable diffusion image generation, based on the plot and character to output appropriate prompts to generate captivating images.\n</image_generation>',
+      position: 'deep_system',
+      depth: 0,
+    },
+  },
 };
 
 // 初始化设置
@@ -44,6 +73,14 @@ if (extension_settings[MODULE_NAME] === undefined) {
   extension_settings[MODULE_NAME] = { ...defaultSettings };
 }
 const settings = extension_settings[MODULE_NAME];
+
+// 向后兼容：确保新设置对象存在
+if (settings.autoGeneration === undefined) {
+  settings.autoGeneration = JSON.parse(JSON.stringify(defaultSettings.autoGeneration));
+}
+if (settings.autoGeneration.promptInjection === undefined) {
+  settings.autoGeneration.promptInjection = JSON.parse(JSON.stringify(defaultSettings.autoGeneration.promptInjection));
+}
 
 // API 端点 - 使用本地代理避免 CORS 问题
 const PIXAI_PROXY_BASE = 'http://127.0.0.1:5555/pixai';
@@ -349,7 +386,7 @@ function addLora() {
  * 加载设置 (UI)
  */
 async function loadSettings() {
-  // 填充设置值
+  // 填充旧设置值
   $('#pixai_api_key').val(settings.apiKey);
   $('#pixai_model_id').val(settings.modelId);
   $('#pixai_sampling_method').val(settings.samplingMethod);
@@ -361,6 +398,18 @@ async function loadSettings() {
   $('#pixai_width, #pixai_width_value').val(settings.width);
   $('#pixai_height, #pixai_height_value').val(settings.height);
 
+  // 填充自动生图设置值
+  if (settings.autoGeneration) {
+    $('#pixai_auto_generation_enabled').prop('checked', settings.autoGeneration.enabled);
+    $('#pixai_auto_gen_regex').val(settings.autoGeneration.regex);
+    if (settings.autoGeneration.promptInjection) {
+      $('#pixai_prompt_injection_enabled').prop('checked', settings.autoGeneration.promptInjection.enabled);
+      $('#pixai_prompt_injection_text').val(settings.autoGeneration.promptInjection.prompt);
+      $('#pixai_prompt_injection_position').val(settings.autoGeneration.promptInjection.position);
+      $('#pixai_prompt_injection_depth').val(settings.autoGeneration.promptInjection.depth);
+    }
+  }
+
   // 渲染 Lora 列表
   renderLoraList();
 
@@ -369,6 +418,13 @@ async function loadSettings() {
     $('#pixai_lora_settings').show();
   } else {
     $('#pixai_lora_settings').hide();
+  }
+
+  // 根据 prompt injection enabled 显示/隐藏 panel
+  if (settings.autoGeneration?.promptInjection?.enabled) {
+    $('#pixai_prompt_injection_panel').show();
+  } else {
+    $('#pixai_prompt_injection_panel').hide();
   }
 }
 
@@ -457,9 +513,7 @@ jQuery(async () => {
     checkProxyStatus();
   }, 1000);
 
-
-
-  // 4. 绑定设置事件监听
+  // 4. 绑定旧设置事件监听
   $('#pixai_api_key').on('input', () => {
     settings.apiKey = String($('#pixai_api_key').val());
     saveSettingsDebounced();
@@ -480,13 +534,12 @@ jQuery(async () => {
     settings.negativePrompt = $(this).val();
     saveSettingsDebounced();
     if (!CSS.supports('field-sizing', 'content')) {
-      const { resetScrollHeight } = await import('../../../../utils.js'); // 修正为4层路径
+      const { resetScrollHeight } = await import('../../../../utils.js');
       await resetScrollHeight($(this));
     }
   });
   $('#pixai_use_lora').on('change', () => {
     settings.useLora = $('#pixai_use_lora').prop('checked');
-    // 显示/隐藏 Lora 设置
     if (settings.useLora) {
       $('#pixai_lora_settings').slideDown(200);
     } else {
@@ -494,7 +547,6 @@ jQuery(async () => {
     }
     saveSettingsDebounced();
   });
-  // 绑定添加 Lora 按钮
   $('#pixai_add_lora').on('click', () => {
     addLora();
   });
@@ -519,11 +571,144 @@ jQuery(async () => {
     saveSettingsDebounced();
   });
 
-  // 3. 注册斜杠命令
+  // 5. 绑定自动生图设置事件监听
+  $('#pixai_auto_generation_enabled').on('change', () => {
+    settings.autoGeneration.enabled = $('#pixai_auto_generation_enabled').prop('checked');
+    saveSettingsDebounced();
+  });
+  $('#pixai_auto_gen_regex').on('input', () => {
+    settings.autoGeneration.regex = $('#pixai_auto_gen_regex').val();
+    saveSettingsDebounced();
+  });
+  $('#pixai_prompt_injection_enabled').on('change', () => {
+    settings.autoGeneration.promptInjection.enabled = $('#pixai_prompt_injection_enabled').prop('checked');
+    if (settings.autoGeneration.promptInjection.enabled) {
+      $('#pixai_prompt_injection_panel').slideDown(200);
+    } else {
+      $('#pixai_prompt_injection_panel').slideUp(200);
+    }
+    saveSettingsDebounced();
+  });
+  $('#pixai_prompt_injection_text').on('input', () => {
+    settings.autoGeneration.promptInjection.prompt = $('#pixai_prompt_injection_text').val();
+    saveSettingsDebounced();
+  });
+  $('#pixai_prompt_injection_position').on('change', () => {
+    settings.autoGeneration.promptInjection.position = $('#pixai_prompt_injection_position').val();
+    saveSettingsDebounced();
+  });
+  $('#pixai_prompt_injection_depth').on('input', () => {
+    settings.autoGeneration.promptInjection.depth = Number($('#pixai_prompt_injection_depth').val());
+    saveSettingsDebounced();
+  });
+
+  // 6. 注册斜杠命令
   registerSlashCommand();
 
-  // 4. 加载保存的设置值
+  // 7. 加载保存的设置值
   await loadSettings();
 
   console.log('[PixAI] Extension loaded.');
 });
+
+// 监听事件：准备发送到LLM的提示
+// 用于实现提示词注入
+eventSource.on(event_types.CHAT_COMPLETION_PROMPT_READY, async function (eventData) {
+  try {
+    if (!settings.autoGeneration?.promptInjection?.enabled || !settings.autoGeneration?.enabled) {
+      return;
+    }
+
+    const injection = settings.autoGeneration.promptInjection;
+    const prompt = injection.prompt;
+    const depth = injection.depth || 0;
+    const position = injection.position || 'deep_system';
+    const role = position.replace('deep_', ''); // 'deep_system' -> 'system'
+
+    if (depth === 0) {
+      eventData.chat.push({ role: role, content: prompt });
+    } else {
+      eventData.chat.splice(-depth, 0, { role: role, content: prompt });
+    }
+    console.log(`[PixAI Auto-Gen] Injected prompt at depth ${depth} with role ${role}.`);
+
+  } catch (error) {
+    console.error('[PixAI Auto-Gen] Prompt injection error:', error);
+  }
+});
+
+// 监听事件：收到新消息
+// 用于检测图片标签、生成图片并替换
+eventSource.on(event_types.MESSAGE_RECEIVED, async function (messageId) {
+  try {
+    if (!settings.autoGeneration?.enabled) {
+      return;
+    }
+
+    const context = getContext();
+    const message = context.chat[messageId];
+
+    // 仅处理来自AI的消息
+    if (!message || message.is_user) {
+      return;
+    }
+
+    const imgTagRegex = regexFromString(settings.autoGeneration.regex);
+    const matches = [...message.mes.matchAll(imgTagRegex)];
+
+    if (matches.length === 0) {
+      return;
+    }
+
+    toastr.info(`[PixAI Auto-Gen] Found ${matches.length} image tags. Starting generation...`);
+
+    let messageContent = message.mes;
+    let changesMade = false;
+
+    for (const match of matches) {
+      const fullTag = match[0];
+      const prompt = match[1];
+
+      if (!prompt) continue;
+
+      try {
+        // 1. 生成图片
+        const result = await generatePixaiImage(prompt, settings.negativePrompt, {}, new AbortController().signal);
+        if (!result || !result.data) {
+          throw new Error('API did not return image data.');
+        }
+
+        // 2. 保存图片文件并获取URL
+        const characterName = context.characters[context.characterId]?.name || 'PixAI';
+        const filename = `${characterName}_${humanizedDateTime()}`;
+        const imageUrl = await saveBase64AsFile(result.data, characterName, filename, result.format);
+
+        if (!imageUrl) {
+          throw new Error('Failed to save image or get URL.');
+        }
+
+        // 3. 创建<img>标签并替换
+        const escapedUrl = escapeHtmlAttribute(imageUrl);
+        const escapedPrompt = escapeHtmlAttribute(prompt);
+        const newImageTag = `<img src="${escapedUrl}" alt="${escapedPrompt}" title="${escapedPrompt}" style="max-width: 100%; height: auto; border-radius: 5px;">`;
+        messageContent = messageContent.replace(fullTag, newImageTag);
+        changesMade = true;
+
+      } catch (error) {
+        console.error(`[PixAI Auto-Gen] Failed to process tag: ${fullTag}`, error);
+        toastr.error(`Failed to generate image for prompt: ${prompt.substring(0, 30)}...`, 'PixAI Auto-Gen Error');
+      }
+    }
+
+    if (changesMade) {
+      message.mes = messageContent;
+      updateMessageBlock(messageId, message);
+      await context.saveChat();
+      toastr.success(`[PixAI Auto-Gen] Finished processing ${matches.length} image tags.`, 'PixAI');
+    }
+
+  } catch (error) {
+    console.error('[PixAI Auto-Gen] Message handling error:', error);
+  }
+});
+
