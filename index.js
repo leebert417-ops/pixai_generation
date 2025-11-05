@@ -669,7 +669,8 @@ eventSource.on(event_types.MESSAGE_RECEIVED, async function (messageId) {
       return;
     }
 
-    const imgTagRegex = regexFromString(settings.autoGeneration.regex);
+    // 更新正则表达式以支持 width 和 height
+    const imgTagRegex = /<pix\s+prompt="([^"]*)"(?:\s+width="(\d+)")?(?:\s+height="(\d+)")?[^>]*?>/g;
     const matches = [...message.mes.matchAll(imgTagRegex)];
 
     if (matches.length === 0) {
@@ -684,12 +685,18 @@ eventSource.on(event_types.MESSAGE_RECEIVED, async function (messageId) {
     for (const match of matches) {
       const fullTag = match[0];
       const prompt = match[1];
+      const width = match[2] ? parseInt(match[2], 10) : null;
+      const height = match[3] ? parseInt(match[3], 10) : null;
 
       if (!prompt) continue;
 
       try {
-        // 1. 生成图片
-        const result = await generatePixaiImage(prompt, settings.negativePrompt, {}, new AbortController().signal);
+        // 1. 生成图片 (传入尺寸覆盖)
+        const overrides = {};
+        if (width) overrides.width = width;
+        if (height) overrides.height = height;
+
+        const result = await generatePixaiImage(prompt, settings.negativePrompt, overrides, new AbortController().signal);
         if (!result || !result.data) {
           throw new Error('API did not return image data.');
         }

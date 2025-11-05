@@ -1,0 +1,135 @@
+[文生图]
+
+适用于朋友圈文字配图、私聊消息、群聊消息和所有html配图，必须严格按照格式，必须用<>包裹[]外面必须用“```”包裹，严格按照以下格式一比一复刻，发图时不用写文字、语音表情包等标签，直接用：```[对方消息|秦倦|500002||<img>]```
+
+私聊：
+```[对方消息|秦倦|500002|文字|小朋友，这么晚还不睡，在想什么呢]```
+```[对方消息|秦倦|500002||<img src="https://image.pollinations.ai/prompt/Fried%20stinky%20tofu%20with%20chili%20sauce,%20food%20photography,%20hyper%20realistic" style="width: 100%; display: block; border-radius: 6px;" alt="一份炸臭豆腐，上面撒满了辣椒和葱花">]```
+
+
+群聊：
+```[群聊消息|555666|姐姐|文字|你在干什么？吃饭了吗？]```
+```[群聊消息|555666|姐姐||<img src="https://image.pollinations.ai/prompt/Fried%20stinky%20tofu%20with%20chili%20sauce,%20food%20photography,%20hyper%20realistic" style="width: 100%; display: block; border-radius: 6px;" alt="一份炸臭豆腐，上面撒满了辣椒和葱花">]```
+
+朋友圈举个例子：
+
+朋友圈：```[朋友圈|乔篱|你的ID|w103|美味~   <img src="https://image.pollinations.ai/prompt/Fried%20stinky%20tofu%20with%20chili%20sauce,%20food%20photography,%20hyper%20realistic" style="width: 100%; display: block; border-radius: 6px;" alt="一份炸臭豆腐，上面撒满了辣椒和葱花">
+]```
+
+淘宝：``` _.insert('商品', 's001', {商品名称: ['生命药水', ''], 价格: [50, ''], 库存: [20, ''], 分类: ['消耗品', ''], 描述: ['恢复100点生命值的药水<img src="https://image.pollinations.ai/prompt/Fried%20stinky%20tofu%20with%20chili%20sauce,%20food%20photography,%20hyper%20realistic" style="width: 100%; display: block; border-radius: 6px;" alt="一份炸臭豆腐，上面撒满了辣椒和葱花">', ''], 品质: ['普通', '']});```
+### 全新升级版生图提示词 (HTML专用)
+
+```
+# 图像生成规则（HTML专用）
+
+当需要在HTML代码块（如小剧场、卡片式设计）中插入由AI生成的图片时，**必须**严格遵循以下规则，以确保图片能正确显示。
+
+### 1. 核心原则
+**必须**使用HTML的 `<img>` 标签格式，**绝对禁止**使用Markdown的 `![]()` 格式。
+
+### 2. 图片生成模板
+请严格按照以下模板生成图片代码：
+
+```
+<img src="https://image.pollinations.ai/prompt/{URL编码的英文图片描述}" style="width: 100%; display: block;" alt="{图片的中文简单描述}">
+```
+
+### 3. 模板详解
+
+*   `{URL编码的英文图片描述}`:
+    *   这是提供给 `pollinations.ai` 的图片内容描述，必须是**英文**。
+    *   所有**空格**必须替换为 `%20`。
+    *   **示例**: 如果想生成“一个漂亮的下午茶套餐”，对应的英文是 `a beautiful afternoon tea set`，转换后就是 `a%20beautiful%20afternoon%20tea%20set`。
+
+*   `style="width: 100%; display: block;"`:
+    *   这是图片的样式，请**务必保留**。
+    *   它能确保图片宽度自适应父容器，并且没有多余的边距，显示效果最好。
+
+*   `alt="{图片的中文简单描述}"`:
+    *   这是图片的“替代文本”，用于图片加载失败时显示，或方便搜索引擎理解。
+    *   请用**中文**简单描述图片内容。
+    *   **示例**: 对于上面的下午茶图片，这里可以写 `alt="精美的下午茶套餐"`。
+
+### 4. 完整示例
+
+**如果要求是：** “生成一张‘一只可爱的猫咪在阳光下睡觉’的图片”
+
+**那么最终生成的代码必须是：**
+
+<!-- 正确示例： -->
+```
+<img src="https://image.pollinations.ai/prompt/a%20cute%20cat%20sleeping%20in%20the%20sun" style="width: 100%; display: block;" alt="一只可爱的猫咪在阳光下睡觉">
+```
+
+### 5. 【重要禁令】
+**绝对禁止**在任何 `<div>`, `<details>`, `<span>` 等HTML标签内部，使用 `![](图片链接)` 的格式。这种格式在HTML中是无效的，会导致图片无法显示。
+
+优先级最高，当我让你给我发图片或者你分享生活的时候，用这个格式，停用NAI生图。
+停用ai_image，图片代码不要选择发送图片的描述，把图片代码放在text正文里就行。
+请严格按照以下模板生成图片代码：
+<img src="https://image.pollinations.ai/prompt/{URL编码的英文图片描述}" style="width: 100%; display: block;" alt="{图片的中文简单描述}">
+）
+该代码应用与文本格式，请勿在图片格式输入，直接插入在文本txt中，而不是image
+举个例子：
+<img src="https://image.pollinations.ai/prompt/A%20single,%20gourmet%20dinner%20setting%20on%20a%20large,%20empty%20dining%20table%20in%20a%20luxurious%20modern%20home.%20The%20scene%20is%20lit%20by%20a%20single%20warm%20pendant%20light,%20casting%20long%20shadows.%20In%20the%20corner%20of%20the%20frame,%20a%20wooden%20washboard%20is%20leaning%20against%20the%20wall,%20looking%20out%20of%20place.%20photorealistic,%20cinematic,%20melancholic%20atmosphere." style="width: 100%; display: block;" alt="豪华空旷的餐厅里，一张餐桌上只摆放了一份晚餐，角落里还靠着一块搓衣板，气氛显得孤单又可怜。">
+
+［生成的人物图片不要用写实风格，用日漫、韩漫、少女漫风格］
+
+以下是专为二次元日漫风格定制的强化提示词模板，可根据角色/场景灵活调整：
+ 
+模板2（风格化强化·萌系/少年感）
+ 
+ manga style, cute young man with **oversized anime eyes** (高光星星/渐变瞳色), **fluffy textured hair** (蓬松感，可选：pastel pink/electric blue), [表情：blushing/energetic grin/innocent gaze], [服装：cute hoodie with cat ears/vintage sweater/sporty jacket], [动作：waving/holding a book/laughing], [场景：café with cute decor/magical forest with floating lights/school rooftop], **kawaii (萌系) details, soft shading, pastel color palette, dynamic angle, highly detailed, sharp focus, best quality** 
+ 
+模板3（叙事向·带情节互动）
+ 
+ anime style, charismatic man with **expressive anime eyes** (情绪张力：determined/playful/mysterious), **stylish hairstyle** (如undercut with bangs/long ponytail), [互动：talking to a friend/holding a magical item/looking at something interesting], [场景：rainy street with reflections/rooftop at sunset/secret hideout], **cinematic composition (电影分镜感), dramatic lighting, bold line art, vivid colors, highly detailed, sharp focus, masterpiece** 
+
+模板7（男性角色·写实向二次元风）
+ 
+anime (manga) style, handsome young man with realistic proportion anime eyes（高光自然，瞳色可选：crimson red/chestnut brown）, neat short layered hair（发丝分层，颜色可选：dark brown/black）, [表情：gentle smile/thoughtful gaze], [服装：casual shirt/light jacket], [姿态：relaxed pose（如fishing by seaside）], [场景：seaside sunset with golden sky], soft shading（写实渐变光影）, natural outline, warm colors, highly detailed, sharp focus, masterpiece, best quality
+
+模板4（男性角色·日系少年感萌系风）
+ 
+manga style, cute young man with big sparkling anime eyes（高光明显，瞳色可选：sky blue/amber gold）, layered messy hair（发丝分层，颜色可选：ash blonde/rose pink）, [表情：playful smile/gentle blush/teasing wink], [服装：kawaii school uniform/loose hoodie/airy kimono], [姿态：dynamic pose（如waving hand/leaning on desk）], [场景：cherry blossom path at noon/café with pastel decor], dreamy shading（柔化渐变光影）, delicate outline, pastel colors, highly detailed, sharp focus, masterpiece, best quality
+
+
+ 
+使用说明
+ 
+- 五官细节：把 (高光明显，瞳色可选：emerald green/amber gold) 替换为具体瞳色（如 ruby red ），或加 glittering eyes（闪瞳） 强化日漫感。
+- 发型服装：根据角色设定选 layered messy hair （分层乱发）或 fluffy textured hair （蓬松萌系发），服装换成 traditional samurai armor （古风武士甲）、 cyberpunk jacket （赛博朋克夹克）等。
+- 场景互动：加入 falling cherry blossoms（飘落樱花） 、 glowing fireflies（发光萤火虫） 等日漫标志性氛围元素，让画面更有叙事感。
+
+
+-不要胡子、要精致优雅白净
+
+以下是专为日漫风格女性角色定制的强化提示词模板，可精准控制发型、风格和互动感，避免性别/年龄偏差：
+ 
+模板1（优雅少女·经典日漫风）
+ 
+ anime (manga) style, elegant young woman with **big sparkling anime eyes** (高光明显，瞳色可选：amethyst purple/pink gradient), **long flowing hair** (发丝分层，颜色可选：silky black/ash blonde), [表情：gentle smile/shy blush/confident gaze], [发型细节：with bangs/half-updo with ribbon], [服装：stylish school uniform/lace-trimmed dress/traditional kimono], [姿态：graceful pose（如holding a book/leaning on a railing）], [场景：cherry blossom garden/cozy café/modern city street], **cell-shading, bold outline, vibrant flat colors, highly detailed, sharp focus, masterpiece, best quality** 
+ 
+模板2（萌系少女·软妹风）
+ 
+ manga style, cute young woman with **oversized anime eyes** (高光星星/渐变瞳色), **fluffy long hair** (蓬松感，可选：pastel pink/aqua blue), [表情：blushing/energetic grin/innocent gaze], [发型细节：twin tails/loose curls with hairpins], [服装：cute hoodie with animal ears/frilly skirt/vintage dress], [动作：waving/holding a plush toy/laughing], [场景：café with cute decor/magical forest with floating lights/school rooftop], **kawaii details, soft shading, pastel color palette, dynamic angle, highly detailed, sharp focus, best quality** 
+ 
+模板3（叙事向·互动感女性）
+ 
+ anime style, charismatic woman with **expressive anime eyes** (情绪张力：playful/determined/mysterious), **stylish long hair** (如braided ponytail/wavy bob), [互动：talking to a friend/holding a magical item/looking at something interesting], [场景：rainy street with reflections/rooftop at sunset/secret hideout], **cinematic composition, dramatic lighting, bold line art, vivid colors, highly detailed, sharp focus, masterpiece** 
+
+模板3（女性角色通用·萌系日漫风）
+ 
+anime (manga) style, cute young girl with big sparkling anime eyes（高光明显，瞳色可选：sky blue/starry purple）, layered wavy hair（发丝分层，颜色可选：gradient aqua pink/pearl white）, [表情：gentle smile/shy blush/playful giggle], [服装：kawaii school uniform/frilly dress/airy kimono], [姿态：dynamic pose（如holding a star wand/twirling hair）], [场景：cherry blossom field at dusk/magical bedroom with fairy lights], dreamy shading（柔化渐变光影）, delicate outline, pastel colors, highly detailed, sharp focus, masterpiece, best quality
+一、明确手部动作与肢体逻辑
+ 
+- 替换模糊姿态描述，用具体动作限定手部数量： one hand holding a cup（一手持杯） 、 both hands resting on a table（双手搭桌） 、 hand gently tucking hair（手轻撩头发） 
+​
+- 补充肢体协调关键词： natural hand placement（手部摆放自然） 、 correct limb proportion（肢体比例正确） 
+ 
+二、添加负向提示词精准避错
+ 
+- 直接禁止手部相关错误： negative prompt: extra hands, extra fingers, missing fingers, deformed hands, misplaced hands（避免：多手、多手指、缺手指、手部畸形、手部错位）
+
+**在提示词末尾加  &nologo=true&model=kontext，通用二次元模型和去掉Logo，必须！！！**
+[/文生图]

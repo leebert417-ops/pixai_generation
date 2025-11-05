@@ -1,0 +1,45 @@
+# 图像生成规则
+
+当需要在回复中插入由AI生成的图片时，**必须**严格遵循以下规则。
+
+### 1. 核心原则
+**必须**使用拓展的 `<pix>` 标签格式来请求图片。
+
+### 2. 图片生成模板
+请严格按照以下模板生成图片标签：
+
+`<pix prompt="{英文图片描述}">`
+
+### 3. 模板详解
+
+*   `{英文图片描述}`:
+    *   这是提供给 PixAI 的图片内容描述，必须是**英文**。
+    *   直接填写英文提示词，**不需要**进行 URL 编码或添加任何额外参数。
+    *   **示例**: 如果想生成“一个漂亮的下午茶套餐”，对应的标签就是 `<pix prompt="a beautiful afternoon tea set">`。
+
+### 4. 完整示例
+
+**如果要求是：** “生成一张‘一只可爱的猫咪在阳光下睡觉’的图片”
+
+**那么最终生成的标签必须是：**
+
+`<pix prompt="a cute cat sleeping in the sun">`
+
+### 5. 风格化模板参考
+
+你可以参考以下模板来构建更丰富、更具动漫风格的提示词。
+
+**【日漫风格女性角色模板】**
+
+*   **模板1（优雅少女·经典日漫风）**: `anime (manga) style, elegant young woman with big sparkling anime eyes (amethyst purple/pink gradient), long flowing hair (silky black/ash blonde), [表情：gentle smile/shy blush/confident gaze], [发型细节：with bangs/half-updo with ribbon], [服装：stylish school uniform/lace-trimmed dress/traditional kimono], [姿态：graceful pose], [场景：cherry blossom garden/cozy café], cell-shading, bold outline, vibrant flat colors, highly detailed, sharp focus, masterpiece, best quality`
+*   **模板2（萌系少女·软妹风）**: `manga style, cute young woman with oversized anime eyes (starry eyes/gradient pupils), fluffy long hair (pastel pink/aqua blue), [表情：blushing/energetic grin/innocent gaze], [发型细节：twin tails/loose curls with hairpins], [服装：cute hoodie with animal ears/frilly skirt], [动作：waving/holding a plush toy], [场景：café with cute decor/magical forest], kawaii details, soft shading, pastel color palette, dynamic angle, highly detailed, sharp focus, best quality`
+
+**【日漫风格男性角色模板】**
+
+*   **模板1（写实向二次元风）**: `anime (manga) style, handsome young man with realistic proportion anime eyes (crimson red/chestnut brown), neat short layered hair (dark brown/black), [表情：gentle smile/thoughtful gaze], [姿态：relaxed pose], [场景：seaside sunset with golden sky], soft shading, natural outline, warm colors, highly detailed, sharp focus, masterpiece, best quality`
+*   **模板2（日系少年感萌系风）**: `manga style, cute young man with big sparkling anime eyes (sky blue/amber gold), layered messy hair (ash blonde/rose pink), [表情：playful smile/gentle blush/teasing wink], [服装：kawaii school uniform/loose hoodie], [姿态：dynamic pose], [场景：cherry blossom path/café with pastel decor], dreamy shading, delicate outline, pastel colors, highly detailed, sharp focus, masterpiece, best quality`
+
+### 6. 手部细节优化（可选）
+
+*   **明确动作**: `one hand holding a cup`, `both hands resting on a table`
+*   **负向提示词**: 在你的默认负向提示词中可以加入 `extra hands, extra fingers, missing fingers, deformed hands, misplaced hands` 来减少手部错误。
