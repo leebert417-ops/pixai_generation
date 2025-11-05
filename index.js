@@ -249,10 +249,12 @@ async function generatePixaiImage(prompt, negativePrompt, overrides = {}, signal
         }
         const imageBlob = await imageResponse.blob();
         const base64DataUrl = await getBase64Async(imageBlob);
+        const seed = statusData.seed || statusData.parameters?.seed; // 尝试从两个可能的位置获取seed
 
         return {
           format: imageBlob.type.split('/')[1] || 'png',
           data: base64DataUrl.split(',')[1], // 移除 "data:image/png;base64," 前缀
+          seed: seed, // 返回seed
         };
       } else {
         throw new Error('PixAI 任务完成，但未返回 mediaUrls。');
@@ -463,7 +465,10 @@ function registerSlashCommand() {
           const imagePath = await saveBase64AsFile(result.data, characterName, filename, result.format);
 
           // 3. 在聊天中显示
-          const markdownImage = `![PixAI Image: ${prompt}](${imagePath})`;
+          let markdownImage = `![PixAI Image: ${prompt}](${imagePath})`;
+          if (result.seed) {
+            markdownImage += `\n*Seed: ${result.seed}*`;
+          }
           await addChatMessage(`(PixAI 正在为“${prompt}”生成图像...)\n${markdownImage}`, true);
 
           toastr.success('图像生成完毕！', 'PixAI');
@@ -698,10 +703,21 @@ eventSource.on(event_types.MESSAGE_RECEIVED, async function (messageId) {
           throw new Error('Failed to save image or get URL.');
         }
 
-        // 3. 创建<img>标签并替换
+        // 3. 创建<img>标签和seed信息，并替换
         const escapedUrl = escapeHtmlAttribute(imageUrl);
         const escapedPrompt = escapeHtmlAttribute(prompt);
-        const newImageTag = `<img src="${escapedUrl}" alt="${escapedPrompt}" title="${escapedPrompt}" style="max-width: 100%; height: auto; border-radius: 5px;">`;
+        let newImageTag = `<img src="${escapedUrl}" alt="${escapedPrompt}" title="${escapedPrompt}" style="max-width: 100%; height: auto; border-radius: 5px;">`;
+
+        if (result.seed) {
+          newImageTag = `
+            <div style="display: inline-block; text-align: center;">
+              <img src="${escapedUrl}" alt="${escapedPrompt}" title="${escapedPrompt}" data-seed="${result.seed}" style="max-width: 100%; height: auto; border-radius: 5px;">
+              <br>
+              <i style="font-size: 0.8em; color: var(--text_color_secondary);">Seed: ${result.seed}</i>
+            </div>
+          `;
+        }
+
         messageContent = messageContent.replace(fullTag, newImageTag);
         changesMade = true;
 
