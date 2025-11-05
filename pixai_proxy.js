@@ -3,9 +3,9 @@
  * 用于绕过浏览器 CORS 限制
  */
 
-const http = require('http');
-const https = require('https');
-const url = require('url');
+import http from 'http';
+import https from 'https';
+import url from 'url';
 
 const PORT = 5555;
 const PIXAI_API_BASE = 'https://api.pixai.art';
