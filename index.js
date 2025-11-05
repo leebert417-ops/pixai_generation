@@ -58,7 +58,7 @@ const defaultSettings = {
   height: 768,
   autoGeneration: {
     enabled: false,
-    regex: '/<pix\\s+prompt="([^\"]*)"[^>]*?>/g',
+    regex: '<pix\\s+prompt="([^\"]*)"(?:\\s+width="(\\d+)")?(?:\\s+height="(\\d+)")?[^>]*?>/g',
     promptInjection: {
       enabled: false,
       prompt: '<image_generation>\nYou must insert a <pix prompt="example prompt"> at end of the reply. Prompts are used for stable diffusion image generation, based on the plot and character to output appropriate prompts to generate captivating images.\n</image_generation>',
@@ -669,8 +669,7 @@ eventSource.on(event_types.MESSAGE_RECEIVED, async function (messageId) {
       return;
     }
 
-    // 更新正则表达式以支持 width 和 height
-    const imgTagRegex = /<pix\s+prompt="([^"]*)"(?:\s+width="(\d+)")?(?:\s+height="(\d+)")?[^>]*?>/g;
+    const imgTagRegex = regexFromString(settings.autoGeneration.regex);
     const matches = [...message.mes.matchAll(imgTagRegex)];
 
     if (matches.length === 0) {

@@ -1,45 +1,47 @@
-# 图像生成规则
+# 规则：前端界面与图片生成
 
-当需要在回复中插入由AI生成的图片时，**必须**严格遵循以下规则。
+当在任何一个角色在剧情中使用手机/电脑等电子设备，或出现可生成app/程序等任何前端界面的机会时，你必须综合运用HTML构建结构，CSS进行美化，并核心使用JavaScript驱动交互和动态内容，共同写出当前角色使用的前端界面。
 
-### 1. 核心原则
-**必须**使用拓展的 `<pix>` 标签格式来请求图片。
+## 1. HTML/CSS/JS 核心要求
+- **代码运行结果**：需适配手机移动端的长版中文界面，并将前端页面显示的信息自然的融入角色扮演过程。
+- **代码风格**：应当尽可能简洁，同时确保运行的界面美观，符合对应角色喜好，高度贴合现实世界中对应种类的app。
+- **美化风格**：模仿 gpt 的美化编写风格，禁止使用白色背景、阴影效果，使用 CSS 进行界面美化。
 
-### 2. 图片生成模板
+## 2. 在 HTML 中插入图片的核心规则
+当你需要在创作的 HTML 界面中插入图片时，**绝对禁止**使用标准的 `<img>` 标签。你**必须**使用拓展提供的特殊 `<pix>` 标签来请求图片。
+
+### 2.1 图片生成模板
 请严格按照以下模板生成图片标签：
 
-`<pix prompt="{英文图片描述}">`
+`<pix prompt="{英文图片描述}" width="{宽度}" height="{高度}">`
 
-### 3. 模板详解
-
-*   `{英文图片描述}`:
+### 2.2 模板详解
+*   `prompt`:
     *   这是提供给 PixAI 的图片内容描述，必须是**英文**。
-    *   直接填写英文提示词，**不需要**进行 URL 编码或添加任何额外参数。
-    *   **示例**: 如果想生成“一个漂亮的下午茶套餐”，对应的标签就是 `<pix prompt="a beautiful afternoon tea set">`。
+*   `width` 和 `height`:
+    *   用于控制图片的尺寸，以适应你的 HTML 布局。
+    *   **必须**从以下三种尺寸中选择一种：
+        *   `width="512" height="512"` (正方形)
+        *   `width="512" height="768"` (竖版/肖像)
+        *   `width="768" height="512"` (横版/风景)
 
-### 4. 完整示例
+### 3. 完整示例
+假设你正在创建一个音乐播放器的 HTML 界面，需要为专辑封面配图：
 
-**如果要求是：** “生成一张‘一只可爱的猫咪在阳光下睡觉’的图片”
+```html
+<div class="album-art-container">
+  <!-- 这是一个竖版封面，所以使用 512x768 -->
+  <pix prompt="album cover for a lofi hip hop song, a girl studying at night with a cat, anime style" width="512" height="768">
+</div>
+```
 
-**那么最终生成的标签必须是：**
+假设你正在创建一个社交动态，需要配一张横版风景图：
 
-`<pix prompt="a cute cat sleeping in the sun">`
+```html
+<div class="post-image-container">
+  <!-- 这是一个横版风景图，所以使用 768x512 -->
+  <pix prompt="beautiful landscape of a cherry blossom path at noon, cinematic, anime style" width="768" height="512">
+</div>
+```
 
-### 5. 风格化模板参考
-
-你可以参考以下模板来构建更丰富、更具动漫风格的提示词。
-
-**【日漫风格女性角色模板】**
-
-*   **模板1（优雅少女·经典日漫风）**: `anime (manga) style, elegant young woman with big sparkling anime eyes (amethyst purple/pink gradient), long flowing hair (silky black/ash blonde), [表情：gentle smile/shy blush/confident gaze], [发型细节：with bangs/half-updo with ribbon], [服装：stylish school uniform/lace-trimmed dress/traditional kimono], [姿态：graceful pose], [场景：cherry blossom garden/cozy café], cell-shading, bold outline, vibrant flat colors, highly detailed, sharp focus, masterpiece, best quality`
-*   **模板2（萌系少女·软妹风）**: `manga style, cute young woman with oversized anime eyes (starry eyes/gradient pupils), fluffy long hair (pastel pink/aqua blue), [表情：blushing/energetic grin/innocent gaze], [发型细节：twin tails/loose curls with hairpins], [服装：cute hoodie with animal ears/frilly skirt], [动作：waving/holding a plush toy], [场景：café with cute decor/magical forest], kawaii details, soft shading, pastel color palette, dynamic angle, highly detailed, sharp focus, best quality`
-
-**【日漫风格男性角色模板】**
-
-*   **模板1（写实向二次元风）**: `anime (manga) style, handsome young man with realistic proportion anime eyes (crimson red/chestnut brown), neat short layered hair (dark brown/black), [表情：gentle smile/thoughtful gaze], [姿态：relaxed pose], [场景：seaside sunset with golden sky], soft shading, natural outline, warm colors, highly detailed, sharp focus, masterpiece, best quality`
-*   **模板2（日系少年感萌系风）**: `manga style, cute young man with big sparkling anime eyes (sky blue/amber gold), layered messy hair (ash blonde/rose pink), [表情：playful smile/gentle blush/teasing wink], [服装：kawaii school uniform/loose hoodie], [姿态：dynamic pose], [场景：cherry blossom path/café with pastel decor], dreamy shading, delicate outline, pastel colors, highly detailed, sharp focus, masterpiece, best quality`
-
-### 6. 手部细节优化（可选）
-
-*   **明确动作**: `one hand holding a cup`, `both hands resting on a table`
-*   **负向提示词**: 在你的默认负向提示词中可以加入 `extra hands, extra fingers, missing fingers, deformed hands, misplaced hands` 来减少手部错误。
+**重要提醒**：你只需要正确地放置 `<pix>` 标签即可，拓展会自动将其替换为最终生成的图片。
